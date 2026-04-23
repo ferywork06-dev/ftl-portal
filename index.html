@@ -1,136 +1,37 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FTL Command Center</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, sans-serif; background: #0f1117; color: #fff; }
-  nav { display: flex; align-items: center; gap: 12px; padding: 14px 24px; background: #1a1d27; border-bottom: 1px solid #2a2d3a; }
-  .logo { font-weight: 700; font-size: 18px; color: #4f6ef7; margin-right: 8px; }
-  nav button { padding: 7px 18px; border: none; border-radius: 6px; cursor: pointer; background: #2a2d3a; color: #aaa; font-size: 14px; transition: all .2s; }
-  nav button.active { background: #4f6ef7; color: white; }
-  .page { display: none; padding: 24px; }
-  .page.active { display: block; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .card { background: #1a1d27; border-radius: 12px; padding: 20px; border: 1px solid #2a2d3a; }
-  .card .label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .card .value { font-size: 28px; font-weight: 700; color: #4f6ef7; }
-  .card .value.green { color: #2ecc71; }
-  .card .value.orange { color: #f39c12; }
-  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .chart-box { background: #1a1d27; border-radius: 12px; padding: 20px; border: 1px solid #2a2d3a; }
-  .chart-box h3 { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
-  .loading { text-align: center; padding: 60px; color: #888; font-size: 16px; }
-  @media (max-width: 768px) { .charts { grid-template-columns: 1fr; } }
-</style>
+  <title>FTL Dashboard Portal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; background: #0f0f1a; color: white; }
+    nav { display: flex; gap: 8px; padding: 12px 16px; background: #1a1a2e; border-bottom: 1px solid #333; }
+    nav button { padding: 8px 18px; border: none; border-radius: 6px; cursor: pointer; background: #2a2a3e; color: #aaa; font-size: 14px; }
+    nav button.active { background: #4f6ef7; color: white; }
+    .title { padding: 0 16px; line-height: 44px; font-weight: 600; font-size: 16px; margin-right: 8px; }
+    iframe { width: 100%; height: calc(100vh - 52px); border: none; display: none; }
+    iframe.active { display: block; }
+  </style>
 </head>
 <body>
-<nav>
-  <span class="logo">FTL Portal</span>
-  <button class="active" onclick="showPage('meta', this)">Meta Ads</button>
-  <button onclick="showPage('ftlgym', this)">FTL Gym</button>
-  <button onclick="showPage('googleads', this)">Google Ads</button>
-</nav>
+  <nav>
+    <span class="title">FTL Portal</span>
+    <button onclick="show('ftlgym', this)" class="active">FTL Gym Dashboard</button>
+    <button onclick="show('metaads', this)">Meta Ads</button>
+    <button onclick="show('googleads', this)">Google Ads</button>
+  </nav>
 
-<!-- Meta Ads Page -->
-<div id="page-meta" class="page active">
-  <div id="meta-loading" class="loading">Loading data Meta Ads...</div>
-  <div id="meta-content" style="display:none">
-    <div class="cards">
-      <div class="card"><div class="label">Total Leads</div><div class="value" id="m-leads">-</div></div>
-      <div class="card"><div class="label">Est. Revenue</div><div class="value green" id="m-revenue">-</div></div>
-      <div class="card"><div class="label">Account</div><div class="value orange" id="m-account">-</div></div>
-      <div class="card"><div class="label">Top Branch</div><div class="value" id="m-top" style="font-size:16px">-</div></div>
-    </div>
-    <div class="charts">
-      <div class="chart-box"><h3>Top 10 Cabang</h3><canvas id="chart-branch"></canvas></div>
-      <div class="chart-box"><h3>Trend Leads per Hari</h3><canvas id="chart-trend"></canvas></div>
-    </div>
-  </div>
-</div>
+  <iframe id="ftlgym"    class="active" src="https://ftl-google-reviewbackfire--project.up.railway.app/"></iframe>
+  <iframe id="metaads"   src="https://meta-ads-dashboard-production-ad50.up.railway.app/"></iframe>
+  <iframe id="googleads" src="https://google-ads-dashboard-production-676e.up.railway.app/"></iframe>
 
-<!-- FTL Gym Page -->
-<div id="page-ftlgym" class="page">
-  <iframe src="https://ftl-google-reviewbackfire--project.up.railway.app/" style="width:100%;height:calc(100vh - 52px);border:none"></iframe>
-</div>
-
-<!-- Google Ads Page -->
-<div id="page-googleads" class="page">
-  <iframe src="https://google-ads-dashboard-production-676e.up.railway.app/" style="width:100%;height:calc(100vh - 52px);border:none"></iframe>
-</div>
-
-<script>
-const META_API = 'https://meta-ads-dashboard-production-ad50.up.railway.app/api.php?action=summary';
-
-function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  btn.classList.add('active');
-}
-
-function formatRupiah(n) {
-  return 'Rp ' + parseInt(n).toLocaleString('id-ID');
-}
-
-async function loadMetaData() {
-  try {
-    const res = await fetch(META_API);
-    const data = await res.json();
-
-    document.getElementById('m-leads').textContent = parseInt(data.total_leads).toLocaleString('id-ID');
-    document.getElementById('m-revenue').textContent = formatRupiah(data.total_revenue);
-    document.getElementById('m-account').textContent = data.account;
-
-    // Aggregate by branch
-    const branches = {};
-    Object.entries(data.leads_by_branch).forEach(([key, val]) => {
-      const branch = key.split('_').slice(2).join(' ');
-      branches[branch] = (branches[branch] || 0) + val;
-    });
-
-    const sorted = Object.entries(branches).sort((a, b) => b[1] - a[1]);
-    document.getElementById('m-top').textContent = sorted[0][0];
-
-    // Top 10 chart
-    const top10 = sorted.slice(0, 10);
-    new Chart(document.getElementById('chart-branch'), {
-      type: 'bar',
-      data: {
-        labels: top10.map(x => x[0]),
-        datasets: [{ label: 'Leads', data: top10.map(x => x[1]), backgroundColor: '#4f6ef7', borderRadius: 6 }]
-      },
-      options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#888', font: { size: 10 } } }, y: { ticks: { color: '#888' } } } }
-    });
-
-    // Trend by date
-    const byDate = {};
-    Object.entries(data.leads_by_branch).forEach(([key, val]) => {
-      const date = key.substring(0, 10);
-      byDate[date] = (byDate[date] || 0) + val;
-    });
-    const dates = Object.keys(byDate).sort().slice(-30);
-    new Chart(document.getElementById('chart-trend'), {
-      type: 'line',
-      data: {
-        labels: dates,
-        datasets: [{ label: 'Leads', data: dates.map(d => byDate[d]), borderColor: '#2ecc71', backgroundColor: 'rgba(46,204,113,0.1)', fill: true, tension: 0.4 }]
-      },
-      options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#888', font: { size: 10 }, maxRotation: 45 } }, y: { ticks: { color: '#888' } } } }
-    });
-
-    document.getElementById('meta-loading').style.display = 'none';
-    document.getElementById('meta-content').style.display = 'block';
-
-  } catch(e) {
-    document.getElementById('meta-loading').textContent = 'Gagal load data: ' + e.message;
-  }
-}
-
-loadMetaData();
-</script>
+  <script>
+    function show(id, btn) {
+      document.querySelectorAll('iframe').forEach(f => f.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      btn.classList.add('active');
+    }
+  </script>
 </body>
 </html>
